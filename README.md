@@ -105,6 +105,31 @@ Enjoy :)
 
 ---
 
+
+## Web UI
+
+A simple Flask-based web interface is included so you can run downloads from your browser instead of the terminal.
+
+### Run locally
+
+```bash
+pip install -r requirements.txt
+python web_ui.py
+```
+
+Then open `http://localhost:8000`, scrape a supported URL, review/edit the scraped metadata, and then start the download.
+
+### Run with Docker
+
+```bash
+docker build -t audiobook-downloader .
+docker run --rm -p 8000:8000 -v $(pwd)/Audiobooks:/app/Audiobooks audiobook-downloader
+```
+
+The UI will be available at `http://localhost:8000`, and downloaded files will be written to your local `Audiobooks` folder through the mounted volume.
+
+---
+
 ## Acknowledgements
 
 This tool was made possible by the developers of the following open-source libraries:

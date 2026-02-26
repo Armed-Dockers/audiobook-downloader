@@ -1,0 +1,92 @@
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: #0b1220;
+  color: #e5e7eb;
+}
+
+.container {
+  max-width: 850px;
+  margin: 2rem auto;
+  padding: 0 1rem 2rem;
+}
+
+h1 {
+  margin-bottom: 0.4rem;
+}
+
+.subhead {
+  color: #9ca3af;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background: #131c2f;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+}
+
+input {
+  background: #0b1220;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  color: #e5e7eb;
+  padding: 0.65rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #16a34a;
+  color: white;
+}
+
+.alert {
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.error {
+  background: #7f1d1d;
+}
+
+.success {
+  background: #14532d;
+}
+
+.muted h2 {
+  margin-top: 0;
+}
+
+
+.muted-copy {
+  color: #cbd5e1;
+}
+
+h2, h3 {
+  margin-top: 0;
+}
