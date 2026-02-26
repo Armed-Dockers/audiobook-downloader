@@ -1,13 +1,14 @@
+import threading
+import uuid
 import subprocess
 
 import requests
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 
 from main import download_and_tag_audiobook, get_scraper
 from utils import parse_chapter_ranges, sanitize_book_title
 
 app = Flask(__name__)
-
 
 SUPPORTED_SITES = [
     "tokybook.com",
@@ -17,6 +18,9 @@ SUPPORTED_SITES = [
     "bigaudiobooks.net",
     "goldenaudiobook.net",
 ]
+
+jobs = {}
+jobs_lock = threading.Lock()
 
 
 def _check_ffmpeg():
@@ -41,7 +45,6 @@ def _prepare_cover_data(book_data):
                 else "image/png"
             )
     except requests.exceptions.RequestException:
-        # Cover art is optional.
         pass
 
 
@@ -51,6 +54,7 @@ def _base_context():
         "errors": [],
         "message": None,
         "preview": None,
+        "job_id": None,
     }
 
 
@@ -73,6 +77,45 @@ def _scrape_preview(url):
         "chapter_count": len(scraped_data["chapters"]),
         "chapter_samples": [chapter.get("title", "Unknown") for chapter in scraped_data["chapters"][:10]],
     }, None
+
+
+def _update_job(job_id, **updates):
+    with jobs_lock:
+        if job_id in jobs:
+            jobs[job_id].update(updates)
+
+
+def _start_download_job(book_data):
+    job_id = str(uuid.uuid4())
+    with jobs_lock:
+        jobs[job_id] = {
+            "status": "queued",
+            "message": "Queued",
+            "current": 0,
+            "total": len(book_data.get("chapters", [])),
+            "book_title": book_data.get("title", "Unknown_Book"),
+        }
+
+    def run_download():
+        def callback(current, total, message, status):
+            _update_job(
+                job_id,
+                status=status,
+                message=message,
+                current=current,
+                total=total,
+            )
+
+        try:
+            _update_job(job_id, status="running", message="Starting download")
+            download_and_tag_audiobook(book_data, progress_callback=callback)
+            _update_job(job_id, status="completed", message="Download completed")
+        except Exception as exc:
+            _update_job(job_id, status="error", message=f"Download failed: {exc}")
+
+    thread = threading.Thread(target=run_download, daemon=True)
+    thread.start()
+    return job_id
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -137,20 +180,37 @@ def index():
                     book_data["chapters"] = [book_data["chapters"][index] for index in selected_indices]
 
                 _prepare_cover_data(book_data)
-                download_and_tag_audiobook(book_data)
-
-                context["message"] = (
-                    f"Downloaded '{book_data['title']}' ({len(book_data['chapters'])} chapters). "
-                    "Files were saved to the Audiobooks folder."
-                )
+                job_id = _start_download_job(book_data)
+                return redirect(url_for("download_status_page", job_id=job_id))
             except Exception as exc:
                 context["errors"].append(f"An error occurred: {exc}")
-
-            preview, _ = _scrape_preview(url)
-            context["preview"] = preview
-            return render_template("index.html", **context)
+                preview, _ = _scrape_preview(url)
+                context["preview"] = preview
+                return render_template("index.html", **context)
 
     return render_template("index.html", **context)
+
+
+@app.route("/download/<job_id>")
+def download_status_page(job_id):
+    with jobs_lock:
+        job = jobs.get(job_id)
+
+    if not job:
+        return redirect(url_for("index"))
+
+    return render_template("download_status.html", job_id=job_id, book_title=job.get("book_title", "Unknown_Book"))
+
+
+@app.route("/download-status/<job_id>")
+def download_status(job_id):
+    with jobs_lock:
+        job = jobs.get(job_id)
+
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    return jsonify(job)
 
 
 if __name__ == "__main__":

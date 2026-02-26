@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Download Progress</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="container">
+    <h1>Downloading: {{ book_title }}</h1>
+    <p class="subhead">Progress updates below. When finished, you'll return to the home screen automatically.</p>
+
+    <section class="card">
+      <p id="status-text">Starting download...</p>
+      <p id="count-text">0 / 0 chapters</p>
+      <div class="progress-wrap">
+        <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const jobId = "{{ job_id }}";
+
+    async function pollStatus() {
+      const response = await fetch(`/download-status/${jobId}`);
+      if (!response.ok) {
+        document.getElementById("status-text").textContent = "Unable to read job status.";
+        return;
+      }
+
+      const data = await response.json();
+      const total = data.total || 0;
+      const current = data.current || 0;
+      const percent = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
+
+      document.getElementById("status-text").textContent = data.message || data.status;
+      document.getElementById("count-text").textContent = `${current} / ${total} chapters (${percent}%)`;
+      document.getElementById("progress-bar").style.width = `${percent}%`;
+
+      if (data.status === "completed") {
+        document.getElementById("status-text").textContent = "✅ Download complete. Redirecting to home...";
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
+        return;
+      }
+
+      if (data.status === "error") {
+        document.getElementById("status-text").textContent = `❌ ${data.message || "Download failed"}`;
+        return;
+      }
+
+      setTimeout(pollStatus, 1500);
+    }
+
+    pollStatus();
+  </script>
+</body>
+</html>

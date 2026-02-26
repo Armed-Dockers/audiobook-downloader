@@ -117,7 +117,7 @@ pip install -r requirements.txt
 python web_ui.py
 ```
 
-Then open `http://localhost:8000`, scrape a supported URL, review/edit the scraped metadata, and then start the download.
+Then open `http://localhost:8000`, scrape a supported URL, review/edit the scraped metadata, and start the download. The UI will switch to a live progress page and automatically return to the home screen when complete.
 
 ### Run with Docker
 
@@ -127,6 +127,21 @@ docker run --rm -p 8000:8000 -v $(pwd)/Audiobooks:/app/Audiobooks audiobook-down
 ```
 
 The UI will be available at `http://localhost:8000`, and downloaded files will be written to your local `Audiobooks` folder through the mounted volume.
+
+
+### Run with Docker Compose
+
+```bash
+docker compose up --build
+```
+
+This will build the image, expose the app on `http://localhost:8000`, and mount `./Audiobooks` from your host into the container so downloads persist.
+
+To stop it:
+
+```bash
+docker compose down
+```
 
 ---
 

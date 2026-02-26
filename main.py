@@ -48,7 +48,7 @@ def get_scraper(url):
     return None
 
 
-def download_and_tag_audiobook(book_data):
+def download_and_tag_audiobook(book_data, progress_callback=None):
     sanitized_title = book_data["title"]
     author_name = book_data.get("author")
     narrator_name = book_data.get("narrator")
@@ -63,6 +63,8 @@ def download_and_tag_audiobook(book_data):
     console.print(
         f"\n[green]Found {total_chapters} chapters. Starting download...[/green]\n"
     )
+    if progress_callback:
+        progress_callback(0, total_chapters, "Preparing download", "running")
 
     with Progress() as progress:
         task = progress.add_task(
@@ -113,6 +115,8 @@ def download_and_tag_audiobook(book_data):
                             f"[dim]Skipping {chapter_title}, already exists.[/dim]"
                         )
                         progress.advance(task)
+                        if progress_callback:
+                            progress_callback(i, total_chapters, f"Skipped {chapter_title}", "running")
                         continue
 
                 # --- DOWNLOAD LOGIC ---
@@ -226,13 +230,21 @@ def download_and_tag_audiobook(book_data):
 
             except Exception as e:
                 console.print(f"[red]Error downloading {chapter_title}: {e}[/red]")
+                if progress_callback:
+                    progress_callback(i, total_chapters, f"Error downloading {chapter_title}: {e}", "error")
+                progress.advance(task)
+                continue
 
             progress.log(f"[green]✔ Completed {chapter_title}[/green]")
             progress.advance(task)
+            if progress_callback:
+                progress_callback(i, total_chapters, f"Completed {chapter_title}", "running")
 
     console.print(
         "\n[bold green]All chapters downloaded and tagged successfully![/bold green]"
     )
+    if progress_callback:
+        progress_callback(total_chapters, total_chapters, "Download completed", "completed")
 
 
 def download_chapters_session(
