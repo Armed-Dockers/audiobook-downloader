@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Audiobook Downloader Web UI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="container">
+    <h1>Audiobook Downloader</h1>
+    <p class="subhead">Paste a supported audiobook URL and optionally override metadata before downloading.</p>
+
+    {% if errors %}
+      <div class="alert error">
+        {% for error in errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if message %}
+      <div class="alert success">{{ message }}</div>
+    {% endif %}
+
+    <form method="post" class="card">
+      <label>Audiobook URL
+        <input name="url" type="url" placeholder="https://tokybook.com/..." required>
+      </label>
+
+      <div class="grid">
+        <label>Title override
+          <input name="title" type="text" placeholder="Optional">
+        </label>
+
+        <label>Author override
+          <input name="author" type="text" placeholder="Optional">
+        </label>
+
+        <label>Narrator override
+          <input name="narrator" type="text" placeholder="Optional">
+        </label>
+
+        <label>Year override
+          <input name="year" type="text" placeholder="Optional">
+        </label>
+      </div>
+
+      <label>Cover URL override
+        <input name="cover_url" type="url" placeholder="Optional image URL">
+      </label>
+
+      <label>Chapters (optional)
+        <input name="chapters" type="text" placeholder="Leave blank for all, or use ranges like 1-5,8,10">
+      </label>
+
+      <button type="submit">Download Audiobook</button>
+    </form>
+
+    <section class="card muted">
+      <h2>Supported sites</h2>
+      <ul>
+        {% for site in supported_sites %}
+          <li>{{ site }}</li>
+        {% endfor %}
+      </ul>
+      {% if chapter_count %}
+        <p>Last scrape found <strong>{{ chapter_count }}</strong> chapters.</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>
