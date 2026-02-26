@@ -1,6 +1,7 @@
-import threading
-import uuid
 import subprocess
+import threading
+import time
+import uuid
 
 import requests
 from flask import Flask, jsonify, redirect, render_template, request, url_for
@@ -54,7 +55,6 @@ def _base_context():
         "errors": [],
         "message": None,
         "preview": None,
-        "job_id": None,
     }
 
 
@@ -85,6 +85,32 @@ def _update_job(job_id, **updates):
             jobs[job_id].update(updates)
 
 
+def _active_jobs_snapshot():
+    with jobs_lock:
+        active = []
+        for job_id, job in jobs.items():
+            if job.get("status") not in ("queued", "running"):
+                continue
+            total = job.get("total", 0) or 0
+            current = job.get("current", 0) or 0
+            percent = int((current / total) * 100) if total > 0 else 0
+            active.append(
+                {
+                    "job_id": job_id,
+                    "book_title": job.get("book_title", "Unknown_Book"),
+                    "status": job.get("status", "queued"),
+                    "message": job.get("message", "Queued"),
+                    "current": current,
+                    "total": total,
+                    "percent": percent,
+                    "started_at": job.get("started_at", 0),
+                }
+            )
+
+    active.sort(key=lambda item: item["started_at"], reverse=True)
+    return active
+
+
 def _start_download_job(book_data):
     job_id = str(uuid.uuid4())
     with jobs_lock:
@@ -94,6 +120,7 @@ def _start_download_job(book_data):
             "current": 0,
             "total": len(book_data.get("chapters", [])),
             "book_title": book_data.get("title", "Unknown_Book"),
+            "started_at": time.time(),
         }
 
     def run_download():
@@ -211,6 +238,12 @@ def download_status(job_id):
         return jsonify({"error": "Job not found"}), 404
 
     return jsonify(job)
+
+
+@app.route("/active-downloads")
+def active_downloads():
+    active_jobs = _active_jobs_snapshot()
+    return jsonify({"count": len(active_jobs), "jobs": active_jobs})
 
 
 if __name__ == "__main__":

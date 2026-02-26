@@ -7,6 +7,18 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+  <button id="jobs-toggle" class="jobs-toggle" type="button" title="Currently downloading">
+    ⬇️
+    <span id="jobs-badge" class="jobs-badge">0</span>
+  </button>
+
+  <aside id="jobs-panel" class="jobs-panel hidden">
+    <h3>Currently downloading</h3>
+    <ul id="jobs-list" class="jobs-list">
+      <li class="jobs-empty">Loading...</li>
+    </ul>
+  </aside>
+
   <main class="container">
     <h1>Audiobook Downloader</h1>
     <p class="subhead">Step 1: scrape metadata from URL. Step 2: confirm/edit and download.</p>
@@ -90,5 +102,7 @@
       </ul>
     </section>
   </main>
+
+  <script src="{{ url_for('static', filename='jobs_widget.js') }}"></script>
 </body>
 </html>
