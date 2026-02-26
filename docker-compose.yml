@@ -7,8 +7,11 @@ services:
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
+      - DOWNLOAD_TEMP_DIR=/temp
+      - DOWNLOAD_COMPLETED_DIR=/completed
     ports:
       - "8000:8000"
     volumes:
-      - ./Audiobooks:/app/Audiobooks
+      - ./temp:/temp
+      - ./completed:/completed
     restart: unless-stopped

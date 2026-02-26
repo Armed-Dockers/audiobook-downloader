@@ -125,10 +125,11 @@ Then open `http://localhost:8000`, scrape a supported URL, review/edit the scrap
 docker build -t audiobook-downloader .
 docker run --rm -p 8000:8000 \
   -e PUID=$(id -u) -e PGID=$(id -g) \
-  -v $(pwd)/Audiobooks:/app/Audiobooks audiobook-downloader
+  -e DOWNLOAD_TEMP_DIR=/temp -e DOWNLOAD_COMPLETED_DIR=/completed \
+  -v $(pwd)/temp:/temp -v $(pwd)/completed:/completed audiobook-downloader
 ```
 
-The UI will be available at `http://localhost:8000`, and downloaded files will be written to your local `Audiobooks` folder through the mounted volume.
+The UI will be available at `http://localhost:8000`. Downloads are written to your mounted `./temp` folder first, then moved to your mounted `./completed` folder when each audiobook finishes.
 
 
 ### Run with Docker Compose
@@ -137,9 +138,11 @@ The UI will be available at `http://localhost:8000`, and downloaded files will b
 PUID=$(id -u) PGID=$(id -g) docker compose up --build
 ```
 
-This will build the image, expose the app on `http://localhost:8000`, and mount `./Audiobooks` from your host into the container so downloads persist.
+This will build the image, expose the app on `http://localhost:8000`, and mount `./temp` and `./completed` from your host into the container so downloads persist and can be staged/moved.
 
 The container uses `PUID`/`PGID` to run the app as your host user, so downloaded files and created folders keep matching ownership.
+
+Downloads are first written to `/temp` inside the container and then moved to `/completed` after each audiobook finishes.
 
 
 To stop it:

@@ -48,7 +48,7 @@ def get_scraper(url):
     return None
 
 
-def download_and_tag_audiobook(book_data, progress_callback=None):
+def download_and_tag_audiobook(book_data, progress_callback=None, output_root_dir=None):
     sanitized_title = book_data["title"]
     author_name = book_data.get("author")
     narrator_name = book_data.get("narrator")
@@ -56,7 +56,8 @@ def download_and_tag_audiobook(book_data, progress_callback=None):
     artwork_data = book_data.get("artwork_data")
     mime_type = book_data.get("mime_type")
 
-    book_dir = os.path.join(os.getcwd(), "Audiobooks", sanitized_title)
+    base_dir = output_root_dir or os.path.join(os.getcwd(), "Audiobooks")
+    book_dir = os.path.join(base_dir, sanitized_title)
     os.makedirs(book_dir, exist_ok=True)
 
     total_chapters = len(book_data["chapters"])
@@ -245,6 +246,8 @@ def download_and_tag_audiobook(book_data, progress_callback=None):
     )
     if progress_callback:
         progress_callback(total_chapters, total_chapters, "Download completed", "completed")
+
+    return book_dir
 
 
 def download_chapters_session(

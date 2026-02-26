@@ -1,3 +1,5 @@
+import os
+import shutil
 import subprocess
 import threading
 import time
@@ -19,6 +21,9 @@ SUPPORTED_SITES = [
     "bigaudiobooks.net",
     "goldenaudiobook.net",
 ]
+
+TEMP_DOWNLOAD_DIR = os.environ.get("DOWNLOAD_TEMP_DIR", "/temp")
+COMPLETED_DOWNLOAD_DIR = os.environ.get("DOWNLOAD_COMPLETED_DIR", "/completed")
 
 jobs = {}
 jobs_lock = threading.Lock()
@@ -111,6 +116,18 @@ def _active_jobs_snapshot():
     return active
 
 
+def _move_to_completed(temp_book_dir, book_title):
+    os.makedirs(COMPLETED_DOWNLOAD_DIR, exist_ok=True)
+    target_dir = os.path.join(COMPLETED_DOWNLOAD_DIR, book_title)
+
+    if os.path.exists(target_dir):
+        timestamp = int(time.time())
+        target_dir = os.path.join(COMPLETED_DOWNLOAD_DIR, f"{book_title}_{timestamp}")
+
+    shutil.move(temp_book_dir, target_dir)
+    return target_dir
+
+
 def _start_download_job(book_data):
     job_id = str(uuid.uuid4())
     with jobs_lock:
@@ -134,9 +151,19 @@ def _start_download_job(book_data):
             )
 
         try:
+            os.makedirs(TEMP_DOWNLOAD_DIR, exist_ok=True)
+            os.makedirs(COMPLETED_DOWNLOAD_DIR, exist_ok=True)
             _update_job(job_id, status="running", message="Starting download")
-            download_and_tag_audiobook(book_data, progress_callback=callback)
-            _update_job(job_id, status="completed", message="Download completed")
+
+            temp_book_dir = download_and_tag_audiobook(
+                book_data,
+                progress_callback=callback,
+                output_root_dir=TEMP_DOWNLOAD_DIR,
+            )
+
+            _update_job(job_id, status="running", message="Moving files to completed folder")
+            final_dir = _move_to_completed(temp_book_dir, book_data.get("title", "Unknown_Book"))
+            _update_job(job_id, status="completed", message=f"Download completed: {final_dir}")
         except Exception as exc:
             _update_job(job_id, status="error", message=f"Download failed: {exc}")
 
