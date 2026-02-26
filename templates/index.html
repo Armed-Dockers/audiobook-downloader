@@ -9,7 +9,7 @@
 <body>
   <main class="container">
     <h1>Audiobook Downloader</h1>
-    <p class="subhead">Paste a supported audiobook URL and optionally override metadata before downloading.</p>
+    <p class="subhead">Step 1: scrape metadata from URL. Step 2: confirm/edit and download.</p>
 
     {% if errors %}
       <div class="alert error">
@@ -23,39 +23,63 @@
       <div class="alert success">{{ message }}</div>
     {% endif %}
 
-    <form method="post" class="card">
-      <label>Audiobook URL
-        <input name="url" type="url" placeholder="https://tokybook.com/..." required>
-      </label>
+    <section class="card">
+      <h2>Step 1 — Scrape</h2>
+      <form method="post">
+        <input type="hidden" name="action" value="scrape">
+        <label>Audiobook URL
+          <input name="url" type="url" placeholder="https://tokybook.com/..." required value="{{ preview.url if preview else '' }}">
+        </label>
+        <button type="submit">Scrape Book Details</button>
+      </form>
+    </section>
 
-      <div class="grid">
-        <label>Title override
-          <input name="title" type="text" placeholder="Optional">
+    {% if preview %}
+    <section class="card">
+      <h2>Step 2 — Confirm / Edit</h2>
+      <p class="muted-copy">Found <strong>{{ preview.chapter_count }}</strong> chapters. Review details below, edit if needed, then start download.</p>
+
+      <form method="post">
+        <input type="hidden" name="action" value="download">
+        <input type="hidden" name="url" value="{{ preview.url }}">
+
+        <div class="grid">
+          <label>Title
+            <input name="title" type="text" value="{{ preview.title }}">
+          </label>
+
+          <label>Author
+            <input name="author" type="text" value="{{ preview.author }}">
+          </label>
+
+          <label>Narrator
+            <input name="narrator" type="text" value="{{ preview.narrator }}">
+          </label>
+
+          <label>Year
+            <input name="year" type="text" value="{{ preview.year }}">
+          </label>
+        </div>
+
+        <label>Cover URL
+          <input name="cover_url" type="url" value="{{ preview.cover_url }}">
         </label>
 
-        <label>Author override
-          <input name="author" type="text" placeholder="Optional">
+        <label>Chapters (optional)
+          <input name="chapters" type="text" placeholder="Leave blank for all, or use ranges like 1-5,8,10">
         </label>
 
-        <label>Narrator override
-          <input name="narrator" type="text" placeholder="Optional">
-        </label>
+        <button type="submit">Download Audiobook</button>
+      </form>
 
-        <label>Year override
-          <input name="year" type="text" placeholder="Optional">
-        </label>
-      </div>
-
-      <label>Cover URL override
-        <input name="cover_url" type="url" placeholder="Optional image URL">
-      </label>
-
-      <label>Chapters (optional)
-        <input name="chapters" type="text" placeholder="Leave blank for all, or use ranges like 1-5,8,10">
-      </label>
-
-      <button type="submit">Download Audiobook</button>
-    </form>
+      <h3>Chapter preview (first 10)</h3>
+      <ol>
+        {% for chapter in preview.chapter_samples %}
+          <li>{{ chapter }}</li>
+        {% endfor %}
+      </ol>
+    </section>
+    {% endif %}
 
     <section class="card muted">
       <h2>Supported sites</h2>
@@ -64,9 +88,6 @@
           <li>{{ site }}</li>
         {% endfor %}
       </ul>
-      {% if chapter_count %}
-        <p>Last scrape found <strong>{{ chapter_count }}</strong> chapters.</p>
-      {% endif %}
     </section>
   </main>
 </body>

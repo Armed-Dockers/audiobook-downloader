@@ -81,3 +81,12 @@ button {
 .muted h2 {
   margin-top: 0;
 }
+
+
+.muted-copy {
+  color: #cbd5e1;
+}
+
+h2, h3 {
+  margin-top: 0;
+}

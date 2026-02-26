@@ -114,11 +114,10 @@ A simple Flask-based web interface is included so you can run downloads from you
 
 ```bash
 pip install -r requirements.txt
-pip install flask==3.0.3
 python web_ui.py
 ```
 
-Then open `http://localhost:8000` and submit a supported audiobook URL.
+Then open `http://localhost:8000`, scrape a supported URL, review/edit the scraped metadata, and then start the download.
 
 ### Run with Docker
 
