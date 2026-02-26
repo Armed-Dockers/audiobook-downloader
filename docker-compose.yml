@@ -1,0 +1,11 @@
+services:
+  audiobook-downloader:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audiobook-downloader
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Audiobooks:/app/Audiobooks
+    restart: unless-stopped

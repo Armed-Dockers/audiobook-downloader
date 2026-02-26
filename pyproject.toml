@@ -20,4 +20,5 @@ dependencies = [
     "urllib3==2.5.0",
     "websockets==15.0.1",
     "yt-dlp==2025.8.22",
+    "flask==3.0.3",
 ]
