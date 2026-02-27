@@ -1,0 +1,17 @@
+services:
+  audiobook-downloader:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audiobook-downloader
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - DOWNLOAD_TEMP_DIR=/temp
+      - DOWNLOAD_COMPLETED_DIR=/completed
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./temp:/temp
+      - ./completed:/completed
+    restart: unless-stopped

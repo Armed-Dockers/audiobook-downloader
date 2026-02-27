@@ -105,6 +105,54 @@ Enjoy :)
 
 ---
 
+
+## Web UI
+
+A simple Flask-based web interface is included so you can run downloads from your browser instead of the terminal.
+
+### Run locally
+
+```bash
+pip install -r requirements.txt
+python web_ui.py
+```
+
+Then open `http://localhost:8000`, scrape a supported URL, review/edit the scraped metadata, and start the download. The UI will switch to a live progress page and automatically return to the home screen when complete. Multiple audiobook jobs can run in parallel, and the top-right downloads icon shows all currently running jobs with progress.
+
+### Run with Docker
+
+```bash
+docker build -t audiobook-downloader .
+docker run --rm -p 8000:8000 \
+  -e PUID=$(id -u) -e PGID=$(id -g) \
+  -e DOWNLOAD_TEMP_DIR=/temp -e DOWNLOAD_COMPLETED_DIR=/completed \
+  -v $(pwd)/temp:/temp -v $(pwd)/completed:/completed audiobook-downloader
+```
+
+The UI will be available at `http://localhost:8000`. Downloads are written to your mounted `./temp` folder first, then moved to your mounted `./completed` folder when each audiobook finishes.
+
+
+### Run with Docker Compose
+
+```bash
+PUID=$(id -u) PGID=$(id -g) docker compose up --build
+```
+
+This will build the image, expose the app on `http://localhost:8000`, and mount `./temp` and `./completed` from your host into the container so downloads persist and can be staged/moved.
+
+The container uses `PUID`/`PGID` to run the app as your host user, so downloaded files and created folders keep matching ownership.
+
+Downloads are first written to `/temp` inside the container and then moved to `/completed` after each audiobook finishes.
+
+
+To stop it:
+
+```bash
+docker compose down
+```
+
+---
+
 ## Acknowledgements
 
 This tool was made possible by the developers of the following open-source libraries:

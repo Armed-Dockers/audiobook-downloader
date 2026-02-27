@@ -54,3 +54,6 @@ websockets==15.0.1
     # via tokybook (pyproject.toml)
 yt-dlp==2025.8.22
     # via tokybook (pyproject.toml)
+
+flask==3.0.3
+    # via tokybook (pyproject.toml)
