@@ -1,0 +1,16 @@
+.git
+.github
+.vscode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.log
+.env
+.env.*
+Audiobooks/
+temp/
+completed/
+misc/
+test.py
